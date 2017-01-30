@@ -57,15 +57,6 @@ def validate_db(cur):
 
 
 
-def get_parser():
-  """ Returns the to be used in the invokation point. """
-  
-  parser = argparse.ArgumentParser("Initialize a new database or verify an existing one.")
-  
-  return parser
-
-
-
 def init_command(args, cur):
   # Nothing useful comes in in args here, but it is still taken to keep the signature consistent with other command functions.
   
@@ -84,22 +75,6 @@ def init_command(args, cur):
     print("Database fails validation checks.") #TODO reproduce sqlite errors here.
 
 
-
-
-if __name__ == "__main__":
-  
-  parser = get_parser()
-  args = parser.parse_args()
-
-  #filename = input("What database file would you like to use? ")
-  filename = "dbgrades.db"
-  
-  with sqlite3.connect(filename) as con:
-    cur = con.cursor()
-    init_command(args, cur)
-  
-  
-  
   
   
   

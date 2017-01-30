@@ -1,11 +1,5 @@
-#! /usr/bin/python3
 
-import argparse
-import sqlite3
-
-DEFAULT_FILENAME = "dbgrades.db"
-
-def add_student(filename=DEFAULT_FILENAME):
+def add_student(cur):
   """ Interactively adds zero or one students to the database.
       All names will be automatically truncated to 32 characters.
       
@@ -30,15 +24,13 @@ def add_student(filename=DEFAULT_FILENAME):
   sql = """INSERT INTO 
            Students (fname, lname, cname, gender)
            VALUES ('{}', '{}', '{}', '{}')""".format(fname, lname, cname, gender)
-  with sqlite3.connect(filename) as connection:
-    c = connection.cursor()
-    c.execute(sql)
+  cur.execute(sql)
   
   return True
 
 
 
-def add_assignment(filename=DEFAULT_FILENAME):
+def add_assignment(cur):
   """ Interactively adds zero or one assignments to the database.
       Name will be automatically truncated to 32 characters.
       Description will be automatically truncated to 255 characters.
@@ -62,26 +54,33 @@ def add_assignment(filename=DEFAULT_FILENAME):
   sql = """INSERT INTO
            Assignments (name, desc, points)
            VALUES ('{}', '{}', '{}')""".format(name, desc, points)
-  with sqlite3.connect(filename) as connection:
-    c = connection.cursor()
-    c.execute(sql)
+  cur.execute(sql)
   
   return True
 
   
 
-######## Main Program ##########
-parser = argparse.ArgumentParser(description='Add a student, assignment, or tag (tags not yet implemented)')
-parser.add_argument('-s', '--student',    action='store_true', help="Add zero or more students to the gradebook.")
-parser.add_argument('-a', '--assignment', action='store_true', help="Add zero or more assignments to the gradebook.")
+def add_tag(cur):
+  #TODO implement this. Should be similar to the other two.
+  pass
 
-args=parser.parse_args()
 
-while args.student:
-  args.student = add_student()
+
+def add_command(args, cur):
+  if args.item == 'student':
+    add_student(cur)
+    while args.multiple:
+      args.multiple = add_student(cur)
   
-while args.assignment:
-  args.assignment = add_assignment()
+  elif args.item == 'assignment':
+    add_assignment(cur)
+    while args.multiple:
+      args.multiple = add_assignment(cur)
+  
+  elif args.item == 'tag':
+    add_tag(cur)
+    while args.multiple:
+      args.multiple = add_tag(cur)
 
 
 

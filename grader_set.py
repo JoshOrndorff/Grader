@@ -60,17 +60,6 @@ def fetch_assignments(partial, cur):
 
 
 
-def get_parser():
-  """ Returns the to be used in the invokation point. """
-  parser = argparse.ArgumentParser(description="Set the grade for a given student and assignment")
-  parser.add_argument('-u', '--update', action='store_true', help="Update a grade if it already exists.")
-  parser.add_argument('student', help="Specify enough of a student name to be unique or <blank> to select all students")
-  parser.add_argument('assignment', help="Specify enough of an assignment name to be unique. No all option provided.")
-  parser.add_argument('points', type=int, help="How many points the student earned") #TODO change type to str when implementing % feature
-  
-  return parser
-
-
 
 def set_command(args, cur):
 
@@ -106,22 +95,6 @@ def set_command(args, cur):
       set_grade(student, assignments[0], args.points, cur)
 
   #TODO implement update option http://stackoverflow.com/questions/3634984/insert-if-not-exists-else-update#3635038
-
-
-if __name__ == "__main__":
-  
-  parser = get_parser()  
-  args = parser.parse_args()
-
-  #filename = input("What database file would you like to use? ")
-  filename = "dbgrades.db"
-  
-  with sqlite3.connect(filename) as con:
-    cur = con.cursor()
-    set_command(args, cur)
-
-
-
 
 
 
