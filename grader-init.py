@@ -3,80 +3,100 @@
 import sqlite3
 import argparse
 
-from os.path import isfile
-
-
-
-DEFAULT_FILENAME = "dbgrades.db"
-
-def init_db(filename = DEFAULT_FILENAME):
-  """ Creates a new database file and creates the tables. """
+def init_db(cur):
+  """ Adds necessary tables to a blank darabase. """
   
-  # If the file already exists, abort
-  if isfile(filename):
-    message = "File {} already exists. Cannot create database.".format(filename)
-    raise Exception(message)
-  
-  
-  with sqlite3.connect(filename) as connection:
-    c = connection.cursor()
-    
-    # Create students table
-    c.execute("""CREATE TABLE Students(id INTEGER PRIMARY KEY,
+  # Create students table
+  cur.execute("""CREATE TABLE Students(id INTEGER PRIMARY KEY,
                                        fname VARCHAR(32),
                                        lname VARCHAR(32),
                                        cname VARCHAR(32),
                                        gender CHAR(1)
                                       )""")
-    # Create assignments table
-    c.execute("""CREATE TABLE Assignments(id INTEGER PRIMARY KEY,
+  # Create assignments table
+  cur.execute("""CREATE TABLE Assignments(id INTEGER PRIMARY KEY,
                                           name VARCHAR(32),
                                           desc VARCHAR(255),
                                           points INTEGER
                                          )""")
-    
-    # Create GradeEntries table
-    c.execute("""CREATE TABLE GradeEntries(student INTEGER REFERENCES Students(id),
+  
+  # Create GradeEntries table
+  cur.execute("""CREATE TABLE GradeEntries(student INTEGER REFERENCES Students(id),
                                            assignment INTEGER REFERENCES Assignments(id),
                                            points INTEGER,
                                            PRIMARY KEY (student, assignment)
                                           )""")
 
-    # Create tags table
-    c.execute("""CREATE TABLE Tags(id INTEGER PRIMARY KEY,
-                                      name VARCHAR(32),
-                                      desc VARCHAR(255)
+  # Create tags table
+  cur.execute("""CREATE TABLE Tags(id INTEGER PRIMARY KEY,
+                                   name VARCHAR(32),
+                                   desc VARCHAR(255)
                                   )""")
-    
-    # Create GradeEntries table
-    c.execute("""CREATE TABLE TagAttachments(tag INTEGER REFERENCES Tags(id),
+  
+  # Create GradeEntries table
+  cur.execute("""CREATE TABLE TagAttachments(tag INTEGER REFERENCES Tags(id),
                                              assignment INTEGER REFERENCES Assignments(id),
                                              PRIMARY KEY (tag, assignment)
-                                          )""")
+                                            )""")
 
 
 
-def validate_db(filename = DEFAULT_FILENAME):
+def validate_db(cur):
   """
   Given a databse, validates its integrety as a grader database.
   
-  Not really checking much currently.
+  Not really checking anything currently.
   """
+  #TODO confirm all the tables and schema are correct.
   
-  # Confirm each grade entry has a valid student and assignment
+  #TODO Confirm each grade entry has a valid student and assignment
   
-  # Confirm each tagging has a valid tag and assignment
+  #TODO Confirm each tagging has a valid tag and assignment
   
   return True
 
 
 
-if __name__ == "__main__":
-  # Parse the arguments to figure out what we want to do.
-  parser = argparse.ArgumentParser("A simple commandline gradebook utility that stays out of your way.")
-  parser.add_argument("init", help="Initialize a new database.")
+def get_parser():
+  """ Returns the to be used in the invokation point. """
   
-  init_db()
+  parser = argparse.ArgumentParser("Initialize a new database or verify an existing one.")
+  
+  return parser
+
+
+
+def init_command(args, cur):
+  # Nothing useful comes in in args here, but it is still taken to keep the signature consistent with other command functions.
+  
+  # If db is empty, initialize it
+  sql = "SELECT name FROM sqlite_master WHERE type='table';"
+  cur.execute(sql)
+  tables = cur.fetchall()
+  if len(tables) == 0:
+    print("Initializing tables.")
+    init_db(cur)
+  
+  # Verify the database
+  if validate_db(cur):
+    print("Database passes validation checks.")
+  else:
+    print("Database fails validation checks.") #TODO reproduce sqlite errors here.
+
+
+
+
+if __name__ == "__main__":
+  
+  parser = get_parser()
+  args = parser.parse_args()
+
+  #filename = input("What database file would you like to use? ")
+  filename = "dbgrades.db"
+  
+  with sqlite3.connect(filename) as con:
+    cur = con.cursor()
+    init_command(args, cur)
   
   
   
